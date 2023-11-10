@@ -1,12 +1,9 @@
 # TriviOS
 
+Código tomado de: https://git.sr.ht/~fabianmv/triviOS/tree/main/item/triviOS/boot.nix
+
 ### Compilación:
 
 ```bash
-nix build .\#nixosConfigurations.triviOS.config.system.build.sdImage --no-link --print-build-logs
+nix build '.#images.pi3' --extra-experimental-features nix-command --extra-experimental-features flakes --show-trace --print-build-logs
 ```
-
-
-### Links:
-- Issue tracker: [TriviOS_todo](https://todo.sr.ht/~fabianmv/TriviOS_todo)
-- Docs: [TriviOS_wiki](https://man.sr.ht/~fabianmv/TriviOS_wiki)
