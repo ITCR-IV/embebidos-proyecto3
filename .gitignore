@@ -1,0 +1,14 @@
+.cache/
+obj/
+
+# LSP
+compile_commands.json
+
+# .o object files
+*.o
+
+# Ejecutable
+main
+
+# Imagen de salida
+output.jpg
