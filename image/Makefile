@@ -1,23 +1,31 @@
-# Definir el compilador
 CXX = g++
+CXXFLAGS=-g -I$(IDIR) -Wall -Wextra `pkg-config --cflags --libs opencv4`
 
-# Opciones de compilación, incluyendo banderas de depuración y advertencias
-CXXFLAGS = -Wall -Wextra -g
+IDIR=include
+ODIR=obj
+SRCDIR=src
 
-# Incluir y enlazar las cabeceras y librerías de OpenCV
-OPENCV = `pkg-config --cflags --libs opencv4`
+LIBS=-lm 
 
-# Nombre del archivo ejecutable resultante
-TARGET = main
+# !!!!!! AGREGAR HEADERS AQUÍ
+# Headers dentro de include/
+_DEPS = filtros.hpp
+DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-# Regla por defecto
-all: $(TARGET)
+# !!!!! AGREGAR SOURCE OBJECT FILES AQUÍ
+# Object files (.o) que haya que compilar 
+_OBJ = main.o filtros.o
+OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-# Regla para construir el ejecutable
-$(TARGET): main.cpp
-	$(CXX) $(CXXFLAGS) -o $(TARGET) main.cpp $(OPENCV)
+$(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS)
+	@mkdir -p $(@D)
+	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
-# Regla para limpiar archivos generados durante la compilación
+server.exe: $(OBJ)
+	$(CXX) -o $@ $^ $(CXXFLAGS) $(LIBS)
+
+.PHONY: clean
+
 clean:
-	rm -f $(TARGET)
-
+	rm -f $(ODIR)/*.o core *~ $(INCDIR)/*~ 
+	rmdir $(ODIR)
