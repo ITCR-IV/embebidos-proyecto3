@@ -21,7 +21,7 @@ $(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS)
 	@mkdir -p $(@D)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
-server.exe: $(OBJ)
+main: $(OBJ)
 	$(CXX) -o $@ $^ $(CXXFLAGS) $(LIBS)
 
 .PHONY: clean
