@@ -14,6 +14,5 @@ Para flashear la imagen en la tarjeta SD primero identifique cuál es el disposi
 
 
 ```
-unzstd result/sd-image/<IMAGEN>.img.zst -d -c -q | sudo dd bs=4M of=/dev/<TARJETA SD> status=progress 
-
+sudo sh -c 'unzstd result/sd-image/<IMAGEN>.img.zst -d -c -q > /dev/<TARJETA SD>
 ```

@@ -6,6 +6,11 @@
         {
           allowedTCPPorts = [ 80 ];
           allowedUDPPorts = [ 53 67 ]; # DNS & DHCP
+          extraCommands = ''
+            iptables -P FORWARD ACCEPT
+            iptables -F FORWARD
+						iptables -t nat -A POSTROUTING -o enu1u1u1 -j MASQUERADE
+          '';
         };
 
 
@@ -16,13 +21,10 @@
         }
       ];
 
-      wireless.enable = true;
+    };
 
-      # wireless = {
-      #   enable = true;
-      #   environmentFile = "/etc/wlan.conf";
-      #   networks."@WLAN_SSID@".psk = "@WLAN_PSK@";
-      # };
+    boot.kernel.sysctl = {
+      "net.ipv4.ip_forward" = true;
     };
 
     services = {
@@ -44,8 +46,10 @@
 
       openssh = {
         enable = true;
-        settings.PasswordAuthentication = true;
-        settings.PermitRootLogin = "yes";
+        settings = {
+          PasswordAuthentication = true;
+          PermitRootLogin = "yes";
+        };
       };
     };
   };
