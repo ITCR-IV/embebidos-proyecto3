@@ -72,7 +72,7 @@ void ht16k33_set_brightness(struct ht16k33_chip *chip, uint8_t brightness);
 
 /*************************************************************
 // chip: pointer to ht16k33_chip obtained from ht16k33_open
-// If ht16k33_close is called on the chip then the 
+// If ht16k33_close is called on the chip then the
 // ht16k33_matrix will become invalid.
 *************************************************************/
 struct ht16k33_matrix *get_matrix(struct ht16k33_chip *chip);

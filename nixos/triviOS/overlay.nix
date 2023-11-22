@@ -42,6 +42,5 @@ self: super: {
     enableButteraugli = false;
   };
 
-  # TODO: Poner nuestro driver
-  # pin_control = self.callPackage ../pin_control { };
+  ht16k33 = self.callPackage ../../driver_ht16k33 { };
 }

@@ -15,3 +15,6 @@ output.jpg
 
 # build dirs
 build/
+
+# result symlinks
+result
