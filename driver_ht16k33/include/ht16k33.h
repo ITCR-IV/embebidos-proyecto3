@@ -4,26 +4,31 @@
 // API inspirado por
 // https://github.com/Seeed-Studio/Grove_LED_Matrix_Driver_HT16K33
 
+#include <stdbool.h>
 #include <stdint.h>
+
 #define HT16K33_DEFAULT_I2C_ADDR 0x70
-// 8*48 means this buffer can store 48 pictures, if you
-// need more space, please make sure MAX_BIG_BUFFER_SIZE
-// is a multiple of 8.
-#define MAX_BIG_BUFFER_SIZE (8 * 20)
 
-enum orientation_type_t {
-  DISPLAY_ROTATE_0 = 0,
-  DISPLAY_ROTATE_90,
-  DISPLAY_ROTATE_180,
-  DISPLAY_ROTATE_270,
-};
+// Estas cosas solo se usan en las varas que no voy a
+// implementar:
+// // 8*48 means this buffer can store 48 pictures, if you
+// // need more space, please make sure MAX_BIG_BUFFER_SIZE
+// // is a multiple of 8.
+// #define MAX_BIG_BUFFER_SIZE (8 * 20)
+//
+// enum orientation_type_t {
+//   DISPLAY_ROTATE_0 = 0,
+//   DISPLAY_ROTATE_90,
+//   DISPLAY_ROTATE_180,
+//   DISPLAY_ROTATE_270,
+// };
+//
+// enum action_type_t {
+//   ACTION_SCROLLING = 0,
+//   ACTION_SHIFT,
+// };
 
-enum action_type_t {
-  ACTION_SCROLLING = 0,
-  ACTION_SHIFT,
-};
-
-enum blink_type_t {
+enum ht16k33_blink_mode {
   BLINK_OFF = 0,
   BLINK_2HZ,
   BLINK_1HZ,
@@ -42,7 +47,7 @@ void ht16k33_init_default();
     Return
      Null.
 *************************************************************/
-void ht16k33_set_blink_rate(blink_type_t blink_type);
+void ht16k33_set_blink_rate(enum ht16k33_blink_mode blink_mode);
 
 /*************************************************************
     Description
@@ -114,7 +119,7 @@ void matrix_clear();
     Return
      Null.
 *************************************************************/
-void matrix_write_pixel(uint8_t x, uint16_t y, bool set_on = true);
+void matrix_write_pixel(uint8_t x, uint16_t y, bool set_on);
 
 // -------- DE AQUÍ EN ADELANTE NO VOY A IMPLEMENTAR --------
 //
@@ -220,4 +225,4 @@ void matrix_write_pixel(uint8_t x, uint16_t y, bool set_on = true);
 // void matrix_write_pictures_64(const uint64_t *pic, uint8_t pic_number,
 //                               uint16_t ms_per_pic, action_type_t mode);
 
-#endif //IV_JZ_LED_MATRIX_DRIVER_HT16K33
+#endif // IV_JZ_LED_MATRIX_DRIVER_HT16K33
