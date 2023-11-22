@@ -1,4 +1,3 @@
-#include <FreeImage.h>
 #include <errno.h>
 #include <signal.h>
 #include <stdio.h>

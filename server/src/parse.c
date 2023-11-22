@@ -89,36 +89,11 @@ struct arguments parse_args(int argc, char **argv) {
 }
 
 #define PORT_KEY "puerto"
-#define COLORS_PATH_KEY "colores"
-#define EQU_PATH_KEY "ecualizado"
 #define LOG_PATH_KEY "log"
 
-// Biggest is "ecualizado" which is 12 bytes
-#define KEY_BUF_SIZE 16
+// Biggest is "puerto" which is 6 bytes
+#define KEY_BUF_SIZE 8
 #define LINE_BUF_SIZE 1024
-#define PATH_BUF_SIZE 1024
-
-char abspath[PATH_BUF_SIZE];
-
-// Might exit with error code
-void create_dir(const char *dirname) {
-  realpath(dirname, abspath);
-
-  struct stat st = {0};
-  if (stat(abspath, &st) == -1) {
-    if (mkdir(abspath, 0777) != 0) {
-      fprintf(stderr, "Error creating/reading dir '%s': %s\n", abspath,
-              strerror(errno));
-      exit(errno);
-    }
-  }
-  stat(abspath, &st);
-  if (!S_ISDIR(st.st_mode)) {
-    fprintf(stderr, "Error: '%s' file already exists and is not a directory.\n",
-            abspath);
-    exit(4);
-  }
-}
 
 // conf_file: FILE* to configuration file
 // line: buffer to store line

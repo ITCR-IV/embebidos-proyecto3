@@ -25,5 +25,7 @@ target_include_directories(ImageServer PRIVATE include)
 include(GNUInstallDirs)
 
 install(TARGETS ImageServer DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(FILES default_config.conf DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/ImageServer/config.conf)
-install(FILES ImageServer.service DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/systemd/system)
+
+# Estas se van a meter dentro del config de nix
+# install(FILES default_config.conf DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/ImageServer/config.conf)
+# install(FILES ImageServer.service DESTINATION ${CMAKE_INSTALL_LIBDIR}/systemd/system)
