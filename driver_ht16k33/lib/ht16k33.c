@@ -8,9 +8,6 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-// TODO: Eventualmente borrar este macro
-#define UNUSED(x) (void)x;
-
 /* General use I2C buffers */
 #define I2C_BUFSIZE 256
 char sendBuf[I2C_BUFSIZE];
@@ -115,28 +112,54 @@ void ht16k33_set_brightness(struct ht16k33_chip *chip, uint8_t brightness) {
 }
 
 /* 8x8 Matrix device info */
+#define DISPLAY_SIZE 8 * 8
 struct ht16k33_matrix {
   struct ht16k33_chip *chip;
+  bool display_buffer[DISPLAY_SIZE];
 };
 
 /* 8x8 Matrix functions */
 struct ht16k33_matrix *get_matrix(struct ht16k33_chip *chip) {
   struct ht16k33_matrix *matrix = malloc(sizeof(struct ht16k33_matrix));
   matrix->chip = chip;
+  memset(matrix->display_buffer, 0, sizeof(bool) * DISPLAY_SIZE);
 
   return matrix;
 }
 
 void release_matrix(struct ht16k33_matrix *matrix) { free(matrix); }
 
-void matrix_display(struct ht16k33_matrix matrix) { UNUSED(matrix) }
+void matrix_display(struct ht16k33_matrix *matrix) {
+  // Por algún motivo solo se setean los valores pares (?)
+  static uint8_t chip_buffer[16];
 
-void matrix_clear(struct ht16k33_matrix matrix) { UNUSED(matrix) }
+  for (size_t row = 0; row < 8; row++) {
+    chip_buffer[row] = 0;
+    for (size_t col = 0; col < 8; col++) {
+      if (matrix->display_buffer[row * 8 + col]) {
+        // set 1
+        chip_buffer[2 * row] |= (1 << (7 - col));
+      } else {
+        // set 0
+        chip_buffer[2 * row] &= ~(1 << (7 - col));
+      }
+    }
+  }
 
-void matrix_write_pixel(struct ht16k33_matrix matrix, uint8_t x, uint16_t y,
+  i2c_write_bytes(matrix->chip->fd, matrix->chip->address, 0x00, 16,
+                  chip_buffer);
+}
+
+void matrix_clear(struct ht16k33_matrix *matrix) {
+  memset(matrix->display_buffer, 0, sizeof(bool) * DISPLAY_SIZE);
+}
+
+void matrix_write_pixel(struct ht16k33_matrix *matrix, uint8_t x, uint8_t y,
                         bool set_on) {
-  UNUSED(matrix)
-  UNUSED(x)
-  UNUSED(y)
-  UNUSED(set_on)
+
+  if ((x > 7) || (y > 7)) {
+    return;
+  }
+
+  matrix->display_buffer[y * 8 + x] = set_on;
 }

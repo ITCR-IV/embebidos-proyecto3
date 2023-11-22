@@ -89,13 +89,13 @@ void release_matrix(struct ht16k33_matrix *matrix);
      function will block until all the data is shown. For example,
      if I call writeString("hello", 1000, ACTION_SCROLLING) and
      display(), then the program will block for 5 seconds(5*1000ms)
-     before it goes to the next sentense.
+     before it goes to the next sentence.
     Parameter
      Null.
     Return
      Null.
 *************************************************************/
-void matrix_display(struct ht16k33_matrix matrix);
+void matrix_display(struct ht16k33_matrix *matrix);
 
 /*************************************************************
     Description
@@ -106,7 +106,7 @@ void matrix_display(struct ht16k33_matrix matrix);
     Return
      Null.
 *************************************************************/
-void matrix_clear(struct ht16k33_matrix matrix);
+void matrix_clear(struct ht16k33_matrix *matrix);
 
 /*************************************************************
     Description
@@ -119,7 +119,7 @@ void matrix_clear(struct ht16k33_matrix matrix);
     Return
      Null.
 *************************************************************/
-void matrix_write_pixel(struct ht16k33_matrix matrix, uint8_t x, uint16_t y,
+void matrix_write_pixel(struct ht16k33_matrix *matrix, uint8_t x, uint8_t y,
                         bool set_on);
 
 // -------- DE AQUÍ EN ADELANTE NO VOY A IMPLEMENTAR --------
