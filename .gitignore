@@ -12,3 +12,6 @@ main
 
 # Imagen de salida
 output.jpg
+
+# build dirs
+build/
