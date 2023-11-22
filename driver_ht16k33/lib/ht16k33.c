@@ -8,6 +8,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+// TODO: Eventualmente borrar este macro
 #define UNUSED(x) (void)x;
 
 /* General use I2C buffers */
@@ -105,13 +106,12 @@ int ht16k33_close(struct ht16k33_chip *chip) {
 
 void ht16k33_set_blink_rate(struct ht16k33_chip *chip,
                             enum ht16k33_blink_mode blink_mode) {
-  UNUSED(chip)
-  UNUSED(blink_mode)
+  i2c_write_bytes(chip->fd, chip->address, (0x80 | 0x01 | (blink_mode << 1)), 0,
+                  NULL);
 }
 
 void ht16k33_set_brightness(struct ht16k33_chip *chip, uint8_t brightness) {
-  UNUSED(chip)
-  UNUSED(brightness)
+  i2c_write_bytes(chip->fd, chip->address, (0xE0 | brightness), 0, NULL);
 }
 
 /* 8x8 Matrix device info */
@@ -119,6 +119,7 @@ struct ht16k33_matrix {
   struct ht16k33_chip *chip;
 };
 
+/* 8x8 Matrix functions */
 struct ht16k33_matrix *get_matrix(struct ht16k33_chip *chip) {
   struct ht16k33_matrix *matrix = malloc(sizeof(struct ht16k33_matrix));
   matrix->chip = chip;
