@@ -119,6 +119,15 @@ struct ht16k33_matrix {
   struct ht16k33_chip *chip;
 };
 
+struct ht16k33_matrix *get_matrix(struct ht16k33_chip *chip) {
+  struct ht16k33_matrix *matrix = malloc(sizeof(struct ht16k33_matrix));
+  matrix->chip = chip;
+
+  return matrix;
+}
+
+void release_matrix(struct ht16k33_matrix *matrix) { free(matrix); }
+
 void matrix_display(struct ht16k33_matrix matrix) { UNUSED(matrix) }
 
 void matrix_clear(struct ht16k33_matrix matrix) { UNUSED(matrix) }

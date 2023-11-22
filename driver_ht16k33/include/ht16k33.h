@@ -37,12 +37,16 @@ enum ht16k33_blink_mode {
 struct ht16k33_chip;
 struct ht16k33_matrix;
 
+/*************************************************************
 // addr: will most likely be HT16K33_DEFAULT_I2C_ADDR
 // device_file: device driver inside /dev, for example "/dev/i2c-1"
 // If an error happens while opening the device file a NULL pointer is returned
+*************************************************************/
 struct ht16k33_chip *ht16k33_open(uint8_t addr, const char *device_file);
 
+/*************************************************************
 // Return: 0 on success
+*************************************************************/
 int ht16k33_close(struct ht16k33_chip *chip);
 
 /*************************************************************
@@ -65,6 +69,18 @@ void ht16k33_set_blink_rate(struct ht16k33_chip *chip,
      Null.
 *************************************************************/
 void ht16k33_set_brightness(struct ht16k33_chip *chip, uint8_t brightness);
+
+/*************************************************************
+// chip: pointer to ht16k33_chip obtained from ht16k33_open
+// If ht16k33_close is called on the chip then the 
+// ht16k33_matrix will become invalid.
+*************************************************************/
+struct ht16k33_matrix *get_matrix(struct ht16k33_chip *chip);
+
+/*************************************************************
+// After calling this the chip must still be closed manually
+*************************************************************/
+void release_matrix(struct ht16k33_matrix *matrix);
 
 /*************************************************************
     Description
