@@ -43,4 +43,5 @@ self: super: {
   };
 
   ht16k33 = self.callPackage ../../driver_ht16k33 { };
+  ImageServer = self.callPackage ../../server { };
 }
