@@ -32,13 +32,18 @@ void applySepia(cv::Mat &image);
 void applySepiaOMP(cv::Mat &image);
 
 void applySharpen(cv::Mat &image);
+void applySharpenOMP(cv::Mat &image);
 
 void adjustBrightness(cv::Mat &image, double factor);
+void adjustBrightnessOMP(cv::Mat &image, double factor);
 
 void adjustContrast(cv::Mat &image, double factor);
+void adjustContrastOMP(cv::Mat &image, double factor);
 
 void adjustSaturation(cv::Mat &image, double factor);
+void adjustSaturationOMP(cv::Mat &image, double factor);
 
 void adjustHue(cv::Mat &image, double factor);
+void adjustHueOMP(cv::Mat &image, double factor);
 
 #endif

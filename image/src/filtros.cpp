@@ -4,19 +4,84 @@
 using namespace cv;
 using namespace std;
 
-void applyBlur(cv::Mat &image, int strength) {
+void applyBlur(cv::Mat &image, int kernelSize) {
   Timer t;
-  cv::GaussianBlur(image, image, cv::Size(strength, strength), 0);
+  
+  cv::Mat resultImage = image.clone(); 
+ 
+    int height = image.rows; 
+    int width = image.cols; 
+ 
+    for (int y = 0; y < height; ++y) { 
+        for (int x = 0; x < width; ++x) { 
+            int totalR = 0, totalG = 0, totalB = 0, count = 0; 
+ 
+            for (int ky = -kernelSize; ky <= kernelSize; ++ky) { 
+                for (int kx = -kernelSize; kx <= kernelSize; ++kx) { 
+                    int newX = x + kx; 
+                    int newY = y + ky; 
+ 
+                    if (newX >= 0 && newX < width && newY >= 0 && newY < height) { 
+                        cv::Vec3b intensity = image.at<cv::Vec3b>(newY, newX); 
+                        totalR += intensity[2]; // Componente R 
+                        totalG += intensity[1]; // Componente G 
+                        totalB += intensity[0]; // Componente B 
+                        count++; 
+                    } 
+                } 
+            } 
+ 
+            // Calcular los valores medios de los componentes R, G y B 
+            resultImage.at<cv::Vec3b>(y, x)[2] = totalR / count; 
+            resultImage.at<cv::Vec3b>(y, x)[1] = totalG / count; 
+            resultImage.at<cv::Vec3b>(y, x)[0] = totalB / count; 
+        } 
+    } 
+ 
+    // Actualizar la imagen original con la imagen resultante después del desenfoque 
+    image = resultImage; 
+
   t.elapsed("Normal Blur");
 }
 
-void applyBlurOMP(cv::Mat &image, int strength) {
+void applyBlurOMP(cv::Mat &image, int kernelSize) {
   Timer t;
-  for(int i = 0; i < image.rows; i++) {
-    for(int j = 0; j < image.cols; j++) {
-      cv::GaussianBlur(image(cv::Rect(j,i,strength,strength)), image(cv::Rect(j,i,strength,strength)), cv::Size(strength, strength), 0);
-    }
-  }
+  
+  cv::Mat resultImage = image.clone(); 
+ 
+    int height = image.rows; 
+    int width = image.cols; 
+ 
+    #pragma omp parallel for collapse(2)
+    for (int y = 0; y < height; ++y) { 
+        for (int x = 0; x < width; ++x) { 
+            int totalR = 0, totalG = 0, totalB = 0, count = 0; 
+ 
+            for (int ky = -kernelSize; ky <= kernelSize; ++ky) { 
+                for (int kx = -kernelSize; kx <= kernelSize; ++kx) { 
+                    int newX = x + kx; 
+                    int newY = y + ky; 
+ 
+                    if (newX >= 0 && newX < width && newY >= 0 && newY < height) { 
+                        cv::Vec3b intensity = image.at<cv::Vec3b>(newY, newX); 
+                        totalR += intensity[2]; // Componente R 
+                        totalG += intensity[1]; // Componente G 
+                        totalB += intensity[0]; // Componente B 
+                        count++; 
+                    } 
+                } 
+            } 
+ 
+            // Calcular los valores medios de los componentes R, G y B 
+            resultImage.at<cv::Vec3b>(y, x)[2] = totalR / count; 
+            resultImage.at<cv::Vec3b>(y, x)[1] = totalG / count; 
+            resultImage.at<cv::Vec3b>(y, x)[0] = totalB / count; 
+        } 
+    } 
+ 
+    // Actualizar la imagen original con la imagen resultante después del desenfoque 
+    image = resultImage; 
+
   t.elapsed("OpemMP Blur");
 }
 
@@ -42,11 +107,11 @@ void applyBlackAndWhite(cv::Mat &image) {
 }
 
 void applyBlackAndWhiteOMP(cv::Mat &image) {
-  Timer t;
-  
-  #pragma omp parallel for
-  for(int y = 0; y < image.rows; y++) {
-    for(int x = 0; x < image.cols; x++) {
+  Timer t;  
+  int x, y;
+  #pragma omp parallel for private(y, x)
+  for(y = 0; y < image.rows; y++) {
+    for(x = 0; x < image.cols; x++) {
 
       Vec3b pixel = image.at<Vec3b>(y, x);
             
@@ -75,6 +140,7 @@ void applySepiaOMP(cv::Mat &image) {
   Timer t;
   cv::Mat sepiaKernel = (cv::Mat_<float>(3, 3) << 0.272, 0.534, 0.131, 0.349,
                          0.686, 0.168, 0.393, 0.769, 0.189);
+  #pragma omp parallel for
   for(int i = 0; i < image.rows-2; i++) {
     for(int j = 0; j < image.cols-2; j++) {
       float sumB = 0, sumG = 0, sumR = 0;
