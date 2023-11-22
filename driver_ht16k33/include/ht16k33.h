@@ -34,10 +34,16 @@ enum ht16k33_blink_mode {
   BLINK_1HZ,
 };
 
-void ht16k33_init(uint8_t addr);
+struct ht16k33_chip;
+struct ht16k33_matrix;
 
-// Same as calling ht16k33_init with HT16K33_DEFAULT_I2C_ADDR
-void ht16k33_init_default();
+// addr: will most likely be HT16K33_DEFAULT_I2C_ADDR
+// device_file: device driver inside /dev, for example "/dev/i2c-1"
+// If an error happens while opening the device file a NULL pointer is returned
+struct ht16k33_chip *ht16k33_open(uint8_t addr, const char *device_file);
+
+// Return: 0 on success
+int ht16k33_close(struct ht16k33_chip *chip);
 
 /*************************************************************
     Description
@@ -47,7 +53,8 @@ void ht16k33_init_default();
     Return
      Null.
 *************************************************************/
-void ht16k33_set_blink_rate(enum ht16k33_blink_mode blink_mode);
+void ht16k33_set_blink_rate(struct ht16k33_chip *chip,
+                            enum ht16k33_blink_mode blink_mode);
 
 /*************************************************************
     Description
@@ -57,30 +64,7 @@ void ht16k33_set_blink_rate(enum ht16k33_blink_mode blink_mode);
     Return
      Null.
 *************************************************************/
-void ht16k33_set_brightness(uint8_t brightness);
-
-/*************************************************************
-    Description
-     Setting the display offset of x-axis and y-axis.
-     This function will activate after call display().
-    Parameter
-     x: The display offset value of horizontal x-axis, range from -8 to 8.
-     y: The display offset value of horizontal y-axis, range from -8 to 8.
-    Return
-     Null.
-*************************************************************/
-void matrix_set_display_offset(int8_t x, int8_t y);
-
-/*************************************************************
-    Description
-     Setting the display orientation.
-     This function will activate after call writeXXX().
-    Parameter
-     orientation: DISPLAY_ROTATE_0, DISPLAY_ROTATE_90, DISPLAY_ROTATE_180,
-    DISPLAY_ROTATE_270, which means the display will rotate 0°, 90°,180° or
-270°. Return Null.
-*************************************************************/
-void matrix_set_display_orientation(uint8_t orientation);
+void ht16k33_set_brightness(struct ht16k33_chip *chip, uint8_t brightness);
 
 /*************************************************************
     Description
@@ -95,7 +79,7 @@ void matrix_set_display_orientation(uint8_t orientation);
     Return
      Null.
 *************************************************************/
-void matrix_display();
+void matrix_display(struct ht16k33_matrix matrix);
 
 /*************************************************************
     Description
@@ -106,7 +90,7 @@ void matrix_display();
     Return
      Null.
 *************************************************************/
-void matrix_clear();
+void matrix_clear(struct ht16k33_matrix matrix);
 
 /*************************************************************
     Description
@@ -119,9 +103,35 @@ void matrix_clear();
     Return
      Null.
 *************************************************************/
-void matrix_write_pixel(uint8_t x, uint16_t y, bool set_on);
+void matrix_write_pixel(struct ht16k33_matrix matrix, uint8_t x, uint16_t y,
+                        bool set_on);
 
 // -------- DE AQUÍ EN ADELANTE NO VOY A IMPLEMENTAR --------
+//
+// /*************************************************************
+//     Description
+//      Setting the display offset of x-axis and y-axis.
+//      This function will activate after call display().
+//     Parameter
+//      x: The display offset value of horizontal x-axis, range from -8 to 8.
+//      y: The display offset value of horizontal y-axis, range from -8 to 8.
+//     Return
+//      Null.
+// *************************************************************/
+// void matrix_set_display_offset(struct ht16k33_matrix matrix, int8_t x, int8_t
+// y);
+//
+// /*************************************************************
+//     Description
+//      Setting the display orientation.
+//      This function will activate after call writeXXX().
+//     Parameter
+//      orientation: DISPLAY_ROTATE_0, DISPLAY_ROTATE_90, DISPLAY_ROTATE_180,
+//     DISPLAY_ROTATE_270, which means the display will rotate 0°, 90°,180° or
+// 270°. Return Null.
+// *************************************************************/
+// void matrix_set_display_orientation(struct ht16k33_matrix matrix, uint8_t
+// orientation);
 //
 // /*************************************************************
 //     Description
