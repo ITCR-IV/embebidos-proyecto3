@@ -43,5 +43,6 @@ self: super: {
   };
 
   ht16k33 = self.callPackage ../../driver_ht16k33 { };
+  ompfilters = self.callPackage ../../image { };
   ImageServer = self.callPackage ../../server { };
 }

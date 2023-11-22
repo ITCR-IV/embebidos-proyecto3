@@ -6,6 +6,7 @@
       vim
       i2c-tools
       ht16k33
+      ompfilters
       ImageServer
     ];
 
