@@ -1,31 +1,8 @@
-CXX = g++
-CXXFLAGS=-fopenmp -g -I$(IDIR) -Wall -Wextra `pkg-config --cflags --libs opencv4`
+all: build
 
-IDIR=include
-ODIR=obj
-SRCDIR=src
+clean: 
+	rm -rf build
+	mkdir build
 
-LIBS=-lm
-
-# !!!!!! AGREGAR HEADERS AQUÍ
-# Headers dentro de include/
-_DEPS = filtros.hpp
-DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
-
-# !!!!! AGREGAR SOURCE OBJECT FILES AQUÍ
-# Object files (.o) que haya que compilar 
-_OBJ = main.o filtros.o
-OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
-
-$(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS)
-	@mkdir -p $(@D)
-	$(CXX) -c -o $@ $< $(CXXFLAGS)
-
-main: $(OBJ)
-	$(CXX) -fopenmp  -o $@ $^ $(CXXFLAGS) $(LIBS)
-
-.PHONY: clean
-
-clean:
-	rm -f $(ODIR)/*.o core *~ $(INCDIR)/*~ 
-	rmdir $(ODIR)
+build: clean
+	(cd build; cmake -DCMAKE_INSTALL_PREFIX:PATH=usr/ ..; make)

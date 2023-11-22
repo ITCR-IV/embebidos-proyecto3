@@ -1,4 +1,4 @@
-#include "filtros.hpp"
+#include "ompfilters.hpp"
 #include <omp.h>
 
 using namespace cv;
