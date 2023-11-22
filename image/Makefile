@@ -1,11 +1,11 @@
 CXX = g++
-CXXFLAGS=-g -I$(IDIR) -Wall -Wextra `pkg-config --cflags --libs opencv4`
+CXXFLAGS=-fopenmp -g -I$(IDIR) -Wall -Wextra `pkg-config --cflags --libs opencv4`
 
 IDIR=include
 ODIR=obj
 SRCDIR=src
 
-LIBS=-lm 
+LIBS=-lm
 
 # !!!!!! AGREGAR HEADERS AQUÍ
 # Headers dentro de include/
@@ -22,7 +22,7 @@ $(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 main: $(OBJ)
-	$(CXX) -o $@ $^ $(CXXFLAGS) $(LIBS)
+	$(CXX) -fopenmp  -o $@ $^ $(CXXFLAGS) $(LIBS)
 
 .PHONY: clean
 
