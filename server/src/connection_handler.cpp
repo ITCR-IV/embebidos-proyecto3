@@ -43,7 +43,7 @@ const char *askpage = "\
     </script>\n\
   </head>\n\
 	<body>\n\
-<form action=\"\\blur\" id=\"imageForm\" method=\"post\" \
+<form accept-charset=utf-8 action=\"\\blur\" id=\"imageForm\" method=\"post\" \
   enctype=\"multipart/form-data\">\n\
 <label for=\"file\">Seleccione una imagen:</label>\n\
 <input name=\"file\" type=\"file\" id=\"imagefile\" required>\n\
@@ -66,22 +66,59 @@ const char *askpage = "\
 const char *complete_response = "The upload has been completed.";
 const char *server_error_response =
     "500 An internal server error has occurred.";
-const char *file_exists_response = "This file already exists.";
 const char *bad_request_response = "This doesn't seem to be right.";
 const char *unrecognized_image_response = "Unrecognized image format.";
 const char *not_found_response = "404 Page Not Found.";
 
 enum MHD_Result send_response(struct MHD_Connection *connection,
-                              const char *page, unsigned int status_code) {
-  struct MHD_Response *response = MHD_create_response_from_buffer(
-      strlen(page), (void *)page, MHD_RESPMEM_MUST_COPY);
+                              const char *page, unsigned int status_code,
+                              FILE *download_image, const char *filename) {
 
-  if (!response) {
-    return MHD_NO;
+  struct MHD_Response *response;
+  enum MHD_Result ret;
+
+  if (download_image != NULL) {
+
+    fseek(download_image, 0, SEEK_END);
+    size_t download_size = ftell(download_image);
+    fseek(download_image, 0, SEEK_SET);
+
+    printf("Retornando una imagen '%s' de tamaño %lu\n", filename,
+           download_size);
+
+    char *download_buffer = (char *)malloc(download_size);
+    fread(download_buffer, 1, download_size, download_image);
+
+    response = MHD_create_response_from_buffer(
+        download_size, (void *)download_buffer, MHD_RESPMEM_MUST_FREE);
+    if (!response) {
+      return MHD_NO;
+    }
+
+    // Set the content disposition to force download of the image
+    char content_disposition[256];
+    snprintf(content_disposition, sizeof(content_disposition),
+             "attachment; filename=%s", filename);
+    MHD_add_response_header(response, "Content-Disposition",
+                            content_disposition);
+    MHD_add_response_header(response, "Content-Type", "image/jpeg");
+
+    ret = MHD_queue_response(connection, status_code, response);
+    MHD_destroy_response(response);
+
+    // No hay que cerrarla (lo hace el request_completed)
+    // fclose(download_image);
+  } else {
+    response = MHD_create_response_from_buffer(strlen(page), (void *)page,
+                                               MHD_RESPMEM_MUST_COPY);
+
+    if (!response) {
+      return MHD_NO;
+    }
+
+    ret = MHD_queue_response(connection, status_code, response);
+    MHD_destroy_response(response);
   }
-
-  enum MHD_Result ret = MHD_queue_response(connection, status_code, response);
-  MHD_destroy_response(response);
 
   return ret;
 }
@@ -179,14 +216,7 @@ static enum MHD_Result iterate_post(void *coninfo_cls, enum MHD_ValueKind kind,
     const char *tmp_filename = (const char *)malloc(strlen(filename) + 2);
     sprintf((char *)tmp_filename, ".%s", filename);
 
-    if (NULL != (fp = fopen(tmp_filename, "rb"))) {
-      fclose(fp);
-      con_info->answerstring = file_exists_response;
-      con_info->answercode = MHD_HTTP_FORBIDDEN;
-      return MHD_NO;
-    }
-
-    con_info->fp = fopen(tmp_filename, "ab");
+    con_info->fp = fopen(tmp_filename, "wb");
     con_info->tmp_filename = tmp_filename;
 
     if (!con_info->fp) {
@@ -255,7 +285,7 @@ void final_processing(struct connection_info_struct *con_info) {
   fclose(con_info->fp);
   con_info->fp = NULL;
 
-  cv::Mat image = cv::imread("../server/image.jpg");
+  cv::Mat image = cv::imread(con_info->tmp_filename);
 
   remove(con_info->tmp_filename);
 
@@ -292,6 +322,8 @@ void final_processing(struct connection_info_struct *con_info) {
 
   con_info->answerstring = complete_response;
   con_info->answercode = MHD_HTTP_OK;
+  cv::imwrite(con_info->tmp_filename, image);
+  con_info->fp = fopen(con_info->tmp_filename, "rb");
 }
 
 enum MHD_Result connection_handler(void *cls, struct MHD_Connection *connection,
@@ -354,7 +386,7 @@ enum MHD_Result connection_handler(void *cls, struct MHD_Connection *connection,
   }
 
   if (strcmp(method, "GET") == 0) {
-    return send_response(connection, askpage, MHD_HTTP_OK);
+    return send_response(connection, askpage, MHD_HTTP_OK, NULL, NULL);
   }
 
   if (strcmp(method, "POST") == 0) {
@@ -369,7 +401,8 @@ enum MHD_Result connection_handler(void *cls, struct MHD_Connection *connection,
         *upload_data_size = 0;
         return MHD_YES;
       }
-      return send_response(connection, not_found_response, MHD_HTTP_NOT_FOUND);
+      return send_response(connection, not_found_response, MHD_HTTP_NOT_FOUND,
+                           NULL, NULL);
     }
 
     struct connection_info_struct *con_info =
@@ -382,17 +415,19 @@ enum MHD_Result connection_handler(void *cls, struct MHD_Connection *connection,
       return MHD_YES;
     } else if (con_info->answercode != MHD_HTTP_OK) {
       return send_response(connection, con_info->answerstring,
-                           con_info->answercode);
+                           con_info->answercode, NULL, NULL);
     } else {
       final_processing(con_info);
       if (NULL != con_info->answerstring) {
 
         // Here do final processing before completing response
         return send_response(connection, con_info->answerstring,
-                             con_info->answercode);
+                             con_info->answercode, con_info->fp,
+                             con_info->tmp_filename);
       }
     }
   }
 
-  return send_response(connection, bad_request_response, MHD_HTTP_BAD_REQUEST);
+  return send_response(connection, bad_request_response, MHD_HTTP_BAD_REQUEST,
+                       NULL, NULL);
 }
