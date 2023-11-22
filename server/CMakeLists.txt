@@ -19,7 +19,7 @@ set(HEADERS
 add_executable(ImageServer ${SOURCES} ${HEADERS})
 
 find_package(OpenCV REQUIRED)
-target_link_libraries(ImageServer microhttpd ${OpenCV_LIBS})
+target_link_libraries(ImageServer ompfilters microhttpd ${OpenCV_LIBS})
 target_include_directories(ImageServer PRIVATE include)
 
 include(GNUInstallDirs)

@@ -5,6 +5,7 @@ extern "C" {
 #include <arpa/inet.h>
 #include <errno.h>
 #include <netinet/in.h>
+#include <ompfilters.hpp>
 #include <opencv2/opencv.hpp>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,13 +27,42 @@ enum ConnectionType {
   POST,
 };
 
-const char *askpage = "<html><body>\n\
-                       Upload a file, please!<br>\n\
-                       <form action=\"/equalize\" method=\"post\" \
-                         enctype=\"multipart/form-data\">\n\
-                       <input name=\"file\" type=\"file\">\n\
-                       <input type=\"submit\" value=\" Send \"></form>\n\
-                       </body></html>";
+const char *askpage = "\
+<html>\n\
+  <head>\n\
+    <script>\n\
+      document.addEventListener(\"DOMContentLoaded\", function () {\n\
+        var form = document.getElementById(\"imageForm\");\n\
+        var filtersDropdown = document.getElementById(\"filters\");\n\
+\n\
+        filtersDropdown.addEventListener(\"change\", function () {\n\
+          var selectedFilter = filtersDropdown.value;\n\
+          form.action = \"\\\\\" + selectedFilter;\n\
+        });\n\
+      });\n\
+    </script>\n\
+  </head>\n\
+	<body>\n\
+<form action=\"\\blur\" id=\"imageForm\" method=\"post\" \
+  enctype=\"multipart/form-data\">\n\
+<label for=\"file\">Seleccione una imagen:</label>\n\
+<input name=\"file\" type=\"file\" id=\"imagefile\" required>\n\
+<br><br>\n\
+<label for=\"filters\">Seleccione un filtro:</label>\n\
+<select name=\"filter\" id=\"filters\" required>\n\
+  <option value=\"\" disabled selected>Select an option</option>\n\
+  <option value=\"blur\">Blur</option>\n\
+  <option value=\"black_and_white\">Black & White</option>\n\
+  <option value=\"sepia\">Sepia</option>\n\
+  <option value=\"sharpen\">Sharpen</option>\n\
+  <option value=\"brightness\">Brightness</option>\n\
+  <option value=\"contrast\">Contrast</option>\n\
+  <option value=\"saturation\">Saturation</option>\n\
+  <option value=\"hue\">Hue</option>\n\
+</select>\n\
+<br><br>\n\
+<input type=\"submit\" value=\"Enviar\"></form>\n\
+</body></html>";
 const char *complete_response = "The upload has been completed.";
 const char *server_error_response =
     "500 An internal server error has occurred.";
@@ -113,7 +143,6 @@ static enum MHD_Result iterate_post(void *coninfo_cls, enum MHD_ValueKind kind,
                                     const char *transfer_encoding,
                                     const char *data, uint64_t off,
                                     size_t size) {
-
   UNUSED(kind);
   UNUSED(content_type);
   UNUSED(transfer_encoding);
@@ -128,6 +157,12 @@ static enum MHD_Result iterate_post(void *coninfo_cls, enum MHD_ValueKind kind,
 
   // The client should put the data under the "file" tag
   if (0 != strcmp(key, "file")) {
+    if (!strcmp(key, "filter")) {
+      con_info->answerstring = complete_response;
+      con_info->answercode = MHD_HTTP_OK;
+
+      return MHD_YES;
+    }
     return MHD_NO;
   }
 
@@ -210,7 +245,6 @@ void request_completed(void *cls, struct MHD_Connection *connection,
 }
 
 void final_processing(struct connection_info_struct *con_info) {
-
   if (con_info->tmp_filename == NULL) {
     con_info->answerstring =
         "Bad Request: No file was provided (under 'file' tag)";
@@ -226,14 +260,29 @@ void final_processing(struct connection_info_struct *con_info) {
   remove(con_info->tmp_filename);
 
   switch (con_info->operation) {
-  case CLASSIFY_RGB:;
-
-    // TODO: PONER OPCIONES DE FILTRADO
-
+  case BLUR:
+    applyBlurOMP(image, 5);
     break;
-  case EQUALIZE_HISTOGRAM:
-    // TODO: PONER OPCIONES DE FILTRADO
-
+  case BLACK_AND_WHITE:
+    applyBlackAndWhiteOMP(image);
+    break;
+  case SEPIA:
+    applySepiaOMP(image);
+    break;
+  case SHARPEN:
+    applySharpenOMP(image);
+    break;
+  case BRIGHTNESS:
+    adjustBrightnessOMP(image, 50);
+    break;
+  case CONTRAST:
+    adjustContrastOMP(image, 1.5);
+    break;
+  case SATURATION:
+    adjustSaturationOMP(image, 1.5);
+    break;
+  case HUE:
+    adjustHueOMP(image, 10);
     break;
   default:
     con_info->answerstring = server_error_response;
@@ -249,7 +298,6 @@ enum MHD_Result connection_handler(void *cls, struct MHD_Connection *connection,
                                    const char *url, const char *method,
                                    const char *version, const char *upload_data,
                                    size_t *upload_data_size, void **con_cls) {
-
   // First connection inside this if sets stuff up
   if (*con_cls == NULL) {
     log_info((struct configuration *)cls, "%s request for %s using version %s",
@@ -269,11 +317,22 @@ enum MHD_Result connection_handler(void *cls, struct MHD_Connection *connection,
     con_info->fp = 0;
 
     if (0 == strcmp(method, "POST")) {
-      if (0 == strcmp(url, "/equalize")) {
-        con_info->operation = EQUALIZE_HISTOGRAM;
-
-      } else if (0 == strcmp(url, "/classify/rgb")) {
-        con_info->operation = CLASSIFY_RGB;
+      if (0 == strcmp(url, "/blur")) {
+        con_info->operation = BLUR;
+      } else if (0 == strcmp(url, "/black_and_white")) {
+        con_info->operation = BLACK_AND_WHITE;
+      } else if (0 == strcmp(url, "/sepia")) {
+        con_info->operation = SEPIA;
+      } else if (0 == strcmp(url, "/sharpen")) {
+        con_info->operation = SHARPEN;
+      } else if (0 == strcmp(url, "/brightness")) {
+        con_info->operation = BRIGHTNESS;
+      } else if (0 == strcmp(url, "/contrast")) {
+        con_info->operation = CONTRAST;
+      } else if (0 == strcmp(url, "/saturation")) {
+        con_info->operation = SATURATION;
+      } else if (0 == strcmp(url, "/hue")) {
+        con_info->operation = HUE;
       }
 
       con_info->postprocessor = MHD_create_post_processor(
@@ -300,8 +359,12 @@ enum MHD_Result connection_handler(void *cls, struct MHD_Connection *connection,
 
   if (strcmp(method, "POST") == 0) {
 
-    if (!(0 == strcmp(url, "/equalize")) &&
-        !(0 == strcmp(url, "/classify/rgb"))) {
+    if (!(0 == strcmp(url, "/blur")) &&
+        !(0 == strcmp(url, "/black_and_white")) &&
+        !(0 == strcmp(url, "/sepia")) && !(0 == strcmp(url, "/sharpen")) &&
+        !(0 == strcmp(url, "/brightness")) &&
+        !(0 == strcmp(url, "/contrast")) &&
+        !(0 == strcmp(url, "/saturation")) && !(0 == strcmp(url, "/hue"))) {
       if (*upload_data_size != 0) {
         *upload_data_size = 0;
         return MHD_YES;

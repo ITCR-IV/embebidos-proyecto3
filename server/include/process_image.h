@@ -2,8 +2,14 @@
 #define PROCESS_IMAGE_H
 
 enum ImageOperation {
-  CLASSIFY_RGB,
-  EQUALIZE_HISTOGRAM,
+  BLUR,
+  BLACK_AND_WHITE,
+  SEPIA,
+  SHARPEN,
+  BRIGHTNESS,
+  CONTRAST,
+  SATURATION,
+  HUE,
 };
 
 #endif
