@@ -375,7 +375,7 @@ void adjustSaturationOMP(cv::Mat &image, double factor) {
 
   // Convertir la imagen de vuelta a BGR
   cv::cvtColor(hsv, image, cv::COLOR_HSV2BGR);
-  t.elapsed("Normal Saturation");
+  t.elapsed("OpenMP Saturation");
 }
 
 void adjustHue(cv::Mat &image, double factor) {
@@ -433,5 +433,5 @@ void adjustHueOMP(cv::Mat &image, double factor) {
 
   // Convertir la imagen de vuelta a BGR
   cv::cvtColor(hsv, image, cv::COLOR_HSV2BGR);
-  t.elapsed("Normal Hue");
+  t.elapsed("OpenMP Hue");
 }
