@@ -1,21 +1,8 @@
-# Variables
-CC = gcc
-CFLAGS = -Wall
-LDFLAGS = -lmicrohttpd
-TARGET =  main
-OBJECTS = main.o
+all: build
 
-# Reglas
-all: $(TARGET)
+clean: 
+	rm -rf build
+	mkdir build
 
-$(TARGET): $(OBJECTS)
-	$(CC) $(OBJECTS) -o $(TARGET) $(LDFLAGS)
-
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-clean:
-	rm -f $(OBJECTS) $(TARGET)
-
-.PHONY: all clean
-
+build: clean
+	(cd build; cmake -DCMAKE_INSTALL_PREFIX:PATH=usr/ ..; make)
