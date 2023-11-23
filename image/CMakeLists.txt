@@ -16,6 +16,10 @@ target_link_libraries(prueba_filtros ompfilters ${OpenCV_LIBS})
 
 include(GNUInstallDirs)
 
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "..." FORCE)
+endif()
+
 install (TARGETS prueba_filtros DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(TARGETS ompfilters LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES include/ompfilters.hpp TYPE INCLUDE)

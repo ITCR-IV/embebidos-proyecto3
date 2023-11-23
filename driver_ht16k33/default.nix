@@ -1,4 +1,4 @@
-{ stdenv, i2c-tools, cmake  }:
+{ stdenv, i2c-tools, cmake }:
 stdenv.mkDerivation {
   pname = "ht16k33";
   version = "0.0.1";

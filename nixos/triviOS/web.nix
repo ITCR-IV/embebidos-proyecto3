@@ -1,5 +1,22 @@
 { config, pkgs, ... }: {
   config.services = {
+
+    systemd.services.ImageServer = {
+      enable = true;
+      description = "ImageServer";
+
+      after = [ "network.target" "network-online.target" "nss-lookup.target" ];
+      requires = [ "network.target" ];
+      wants = [ "network-online.target" ];
+
+      serviceConfig = {
+        ExecStart = "ImageServer";
+        Type = "simple";
+        Restart = "always";
+      };
+      wantedBy = [ "multi-user.target" ];
+    };
+
     # TODO: Poner nuestros propios servicios web
     # nginx = {
     #   enable = true;

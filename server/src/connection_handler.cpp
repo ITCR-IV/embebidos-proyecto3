@@ -87,7 +87,9 @@ enum MHD_Result send_response(struct MHD_Connection *connection,
            download_size);
 
     char *download_buffer = (char *)malloc(download_size);
-    fread(download_buffer, 1, download_size, download_image);
+    if (!fread(download_buffer, 1, download_size, download_image)) {
+      return MHD_NO;
+    }
 
     response = MHD_create_response_from_buffer(
         download_size, (void *)download_buffer, MHD_RESPMEM_MUST_FREE);
