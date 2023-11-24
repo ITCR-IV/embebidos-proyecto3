@@ -12,7 +12,7 @@
 
   config = {
     sdImage = {
-      firmwareSize = 64;
+      firmwareSize = 30;
       populateFirmwareCommands =
         let
           configTxt = pkgs.writeText "config.txt"

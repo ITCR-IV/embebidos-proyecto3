@@ -4,7 +4,7 @@
       hostName = "rpi3";
       firewall =
         {
-          allowedTCPPorts = [ 80 ];
+          allowedTCPPorts = [ 80 1717 ]; # SSH & ImageServer
           allowedUDPPorts = [ 53 67 ]; # DNS & DHCP
           extraCommands = ''
             iptables -P FORWARD ACCEPT

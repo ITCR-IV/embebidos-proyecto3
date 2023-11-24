@@ -1,5 +1,5 @@
-{ config, pkgs, ... }: {
-  config.services = {
+{ pkgs, ... }: {
+  config = {
 
     systemd.services.ImageServer = {
       enable = true;
@@ -10,7 +10,7 @@
       wants = [ "network-online.target" ];
 
       serviceConfig = {
-        ExecStart = "ImageServer";
+        ExecStart = "${pkgs.ImageServer}/bin/ImageServer";
         Type = "simple";
         Restart = "always";
       };
@@ -53,7 +53,7 @@
     #   };
     # };
 
-    udev.extraRules = ''
+    services.udev.extraRules = ''
       KERNEL=="gpiochip*", GROUP="uwsgi", MODE="660"
       KERNEL=="video*", GROUP="uwsgi", MODE="660"
     '';
