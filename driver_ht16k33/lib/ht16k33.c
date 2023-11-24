@@ -1,7 +1,6 @@
 #include "ht16k33.h"
 
 #include <fcntl.h>
-#include <i2c/smbus.h>
 #include <linux/i2c-dev.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,37 +21,22 @@ int i2c_set_slave_address(int fd, uint8_t addr) {
   return 0;
 }
 
-int i2c_write_bytes(int fd, uint8_t dev_addr, uint8_t reg_addr, size_t length,
+int i2c_write_bytes(int fd, uint8_t dev_addr, uint8_t reg_addr, uint8_t length,
                     uint8_t *data) {
   int ret = i2c_set_slave_address(fd, dev_addr);
   if (ret < 0) {
     return ret;
   }
 
-  length += 1; // Para tomar en cuenta byte de registro
   sendBuf[0] = reg_addr;
-  size_t packet;
-  size_t total_packets = (length / (I2C_BUFSIZE - 1)) + 1;
 
-  for (packet = 0; packet < total_packets; packet++) {
-    size_t bytes;
-    if (packet < total_packets - 1) {
-      bytes = I2C_BUFSIZE - 1;
-    } else {
-      // Último paquete (no es necesario si length % 255 == 0)
-      bytes = length % (I2C_BUFSIZE - 1);
-      if (bytes == 0) {
-        break;
-      }
-    }
+  for (size_t i = 0; i < length; i++) {
+    sendBuf[i + 1] = data[i];
+  }
 
-    for (size_t i = 0; i < bytes; i++) {
-      sendBuf[i + 1] = data[i + (packet * (I2C_BUFSIZE - 1))];
-    }
-
-    if ((ret = write(fd, sendBuf, bytes)) < 0) {
-      return ret;
-    }
+  // +1 length for register byte
+  if ((ret = write(fd, sendBuf, 1 + length)) < 0) {
+    return ret;
   }
 
   return 0;
@@ -80,11 +64,13 @@ struct ht16k33_chip *ht16k33_open(uint8_t addr, const char *device_file) {
   struct ht16k33_chip *chip = malloc(sizeof(struct ht16k33_chip));
   chip->fd = file;
   chip->address = addr;
-  chip->device_filename = malloc(strlen(device_file) + 1);
+  chip->device_filename = malloc(strlen(device_file) + 2);
   strcpy((char *)chip->device_filename, device_file);
 
   // turn on oscillator
   i2c_write_bytes(chip->fd, chip->address, 0x21, 0, NULL);
+
+	ht16k33_set_blink_rate(chip, BLINK_OFF);
 
   return chip;
 }
@@ -131,17 +117,15 @@ void release_matrix(struct ht16k33_matrix *matrix) { free(matrix); }
 
 void matrix_display(struct ht16k33_matrix *matrix) {
   // Por algún motivo solo se setean los valores pares (?)
-  static uint8_t chip_buffer[16];
+  static uint8_t chip_buffer[16] = {0};
 
   for (size_t row = 0; row < 8; row++) {
-    chip_buffer[row] = 0;
+    chip_buffer[2 * row] = 0;
+    chip_buffer[2 * row + 1] = 0;
+
     for (size_t col = 0; col < 8; col++) {
       if (matrix->display_buffer[row * 8 + col]) {
-        // set 1
-        chip_buffer[2 * row] |= (1 << (7 - col));
-      } else {
-        // set 0
-        chip_buffer[2 * row] &= ~(1 << (7 - col));
+        chip_buffer[2 * row] |= (1 << col);
       }
     }
   }
@@ -160,6 +144,10 @@ void matrix_write_pixel(struct ht16k33_matrix *matrix, uint8_t x, uint8_t y,
   if ((x > 7) || (y > 7)) {
     return;
   }
+
+  // wrap around the x
+  x += 7;
+  x %= 8;
 
   matrix->display_buffer[y * 8 + x] = set_on;
 }
