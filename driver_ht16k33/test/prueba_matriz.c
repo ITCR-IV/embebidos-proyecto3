@@ -26,7 +26,7 @@ int main(void) {
       matrix_write_pixel(matrix, x, y, 1);
       matrix_display(matrix);
       // Durar 2s en total
-      usleep(2000000 / 8 * 8);
+      usleep(2000000 / (8 * 8));
     }
   }
 
@@ -34,20 +34,20 @@ int main(void) {
   printf("Variar brillo\n");
   for (uint8_t brightness = 0; brightness < 16; brightness++) {
     ht16k33_set_brightness(chip, 15 - brightness);
-    usleep(1500000 / 8 * 8); // 1.5s en total
+    usleep(2000000 / (16)); // 2s en total
   }
 
   for (uint8_t brightness = 0; brightness < 16; brightness++) {
     ht16k33_set_brightness(chip, brightness);
-    usleep(1500000 / 8 * 8); // 1.5s en total
+    usleep(2000000 / (16)); // 2s en total
   }
 
   usleep(200000); // 0.2s
   printf("Blinking\n");
   ht16k33_set_blink_rate(chip, BLINK_1HZ);
-  usleep(4000000); // 4s
-  ht16k33_set_blink_rate(chip, BLINK_2HZ);
   usleep(3000000); // 3s
+  ht16k33_set_blink_rate(chip, BLINK_2HZ);
+  usleep(2000000); // 2s
 
   ht16k33_set_blink_rate(chip, BLINK_OFF);
   usleep(1000000); // 1s
@@ -76,6 +76,10 @@ int main(void) {
       matrix_write_pixel(matrix, x, y, check_img[y * 8 + x]);
     }
   }
+  matrix_display(matrix);
+  usleep(4000000); // 4.0s
+
+  matrix_clear(matrix);
   matrix_display(matrix);
 
   release_matrix(matrix);
